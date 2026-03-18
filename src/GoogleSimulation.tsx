@@ -9,7 +9,7 @@ import {
   type SimResult
 } from './data/results';
 import { getRelatedSearches } from './data/relatedSearches';
-import { trackPageView, trackTabChange, trackPagination, trackSearch, trackResultClick, trackEvent, trackSessionEnd } from './utils/tracking';
+import { trackPageView, trackTabChange, trackPagination, trackSearch, trackResultClick, trackEvent, trackSessionEnd, type ProlificParams } from './utils/tracking';
 
 interface GoogleSimulationProps {
   searchType?: 'keisha';
@@ -22,18 +22,24 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'keish
   const resultsPerPage = 10;
 
   const returnUrl = useMemo(() => new URLSearchParams(window.location.search).get('returnUrl') || 'https://gmu.az1.qualtrics.com/jfe/form/SV_dpetNtWS5RNFmMS', []);
+  // Capture Prolific parameters from URL
+  const prolificParams: ProlificParams = useMemo(() => ({
+    prolificPid: new URLSearchParams(window.location.search).get('PROLIFIC_PID') || undefined,
+    studyId: new URLSearchParams(window.location.search).get('STUDY_ID') || undefined,
+    sessionIdProlific: new URLSearchParams(window.location.search).get('SESSION_ID') || undefined,
+  }), []);
 
   const isDark = false;
 
   // Track page view on mount
   useEffect(() => {
-    trackPageView('keisha', currentPage, activeTab);
+    trackPageView('keisha', currentPage, activeTab, undefined, prolificParams);
   }, []);
 
   // Track session end on beforeunload
   useEffect(() => {
     const handleBeforeUnload = () => {
-      trackSessionEnd('keisha', currentPage, activeTab);
+      trackSessionEnd('keisha', currentPage, activeTab, undefined, prolificParams);
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -171,7 +177,7 @@ const GoogleSimulation: React.FC<GoogleSimulationProps> = ({ searchType = 'keish
                       <ResultCard
                         result={result}
                         onOpen={(result) => {
-                          trackResultClick(result.id, result.platform, result.displayName, 'keisha');
+                          trackResultClick(result.id, result.platform, result.displayName, 'keisha', undefined, prolificParams);
                           // Low-disc persona: no profile views open, just track the click
                         }}
                         isDark={isDark}
